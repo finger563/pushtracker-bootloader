@@ -1,16 +1,18 @@
 #	BOOTLOADER Makefile
 
-SYSPATH = SYSTEM/
+SYSPATH = System/
 USBPATH = LPCUSB/
+LIBPATH = lib/
 
 FLASH_TOOL = LPC12
 #FLASH_TOOL = UVISION
 #FLASH_TOOL = OPENOCD
 
 # MCU name and submodel
-MCU      = arm7tdmi
+MCU      = armv7-a
+TUNE     = arm7tdmi
 SUBMDL   = LPC2148
-#THUMB    = -mthumb
+THUMB    = -mthumb
 
 #THUMB_IW is needed for IAP routines
 THUMB_IW = -mthumb-interwork
@@ -120,6 +122,7 @@ DEBUG = stabs
 EXTRAINCDIRS = $(LPCPATH)
 EXTRAINCDIRS +=  $(SYSPATH)
 EXTRAINCDIRS +=  $(USBPATH)
+EXTRAINCDIRS +=  $(LIBPATH)
 
 # List any extra directories to look for library files here.
 #     Each directory must be seperated by a space.
@@ -147,9 +150,6 @@ ifdef VECTOR_LOCATION
 CDEFS += -D$(VECTOR_LOCATION)
 ADEFS += -D$(VECTOR_LOCATION)
 endif
-
-CDEFS += -D__WinARM__
-ADEFS += -D__WinARM__
 
 # Compiler flags.
 #  -g*:          generate debugging information
@@ -254,12 +254,12 @@ LPC21ISP_CONTROL = -control
 
 # Define programs and commands.
 SHELL = sh
-CC = arm-elf-gcc
-CPP = arm-elf-g++
-OBJCOPY = arm-elf-objcopy
-OBJDUMP = arm-elf-objdump
-SIZE = arm-elf-size
-NM = arm-elf-nm
+CC = arm-none-eabi-gcc
+CPP = arm-none-eabi-g++
+OBJCOPY = arm-none-eabi-objcopy
+OBJDUMP = arm-none-eabi-objdump
+SIZE = arm-none-eabi-size
+NM = arm-none-eabi-nm
 REMOVE = rm -f
 COPY = cp
 
@@ -302,8 +302,8 @@ GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS  = -mcpu=$(MCU) $(THUMB_IW) -I. $(CFLAGS) $(GENDEPFLAGS)
-ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
+ALL_CFLAGS  = -march=$(MCU) $(THUMB_IW) -I. $(CFLAGS) $(GENDEPFLAGS)
+ALL_ASFLAGS = -march=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
 # Default target.
@@ -387,7 +387,7 @@ endif
 	@echo
 	@echo $(MSG_FLASH) $@
 	$(OBJCOPY) -O $(FORMAT) $< $@
-	
+
 # Create final output file (.bin) from ELF output file.
 %.bin: %.elf
 	@echo
