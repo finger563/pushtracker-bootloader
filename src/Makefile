@@ -9,10 +9,9 @@ FLASH_TOOL = LPC12
 #FLASH_TOOL = OPENOCD
 
 # MCU name and submodel
-MCU      = armv7-a
-TUNE     = arm7tdmi
+MCU      = arm7tdmi-s
 SUBMDL   = LPC2148
-THUMB    = -mthumb
+#THUMB    = -mthumb
 
 #THUMB_IW is needed for IAP routines
 THUMB_IW = -mthumb-interwork
@@ -45,7 +44,7 @@ SRC += $(SYSPATH)syscalls.c
 SRC += $(SYSPATH)rprintf.c 
 SRC += $(SYSPATH)serial.c
 
-#SRC += $(SYSPATH)OLED.c
+SRC += $(LIBPATH)OLED.c
 
 #Functions for bootloading
 SRC += $(SYSPATH)firmware.c
@@ -114,8 +113,8 @@ AT91LIBNOWARN = no
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
 # AVR (extended) COFF requires stabs, plus an avr-objcopy run.
-DEBUG = stabs
-#DEBUG = dwarf-2
+#DEBUG = stabs
+DEBUG = dwarf-2
 
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.
@@ -150,6 +149,9 @@ ifdef VECTOR_LOCATION
 CDEFS += -D$(VECTOR_LOCATION)
 ADEFS += -D$(VECTOR_LOCATION)
 endif
+
+CDEFS += -D__WinARM__
+ADEFS += -D__WinARM__
 
 # Compiler flags.
 #  -g*:          generate debugging information
@@ -235,7 +237,7 @@ LDFLAGS +=-Tlpc2138.cmd
 # Settings and variables:
 #LPC21ISP = lpc21isp
 LPC21ISP = lpc21isp
-LPC21ISP_PORT = com6
+LPC21ISP_PORT = /dev/ttyUSB0
 LPC21ISP_BAUD = 38400
 LPC21ISP_XTAL = 12000
 LPC21ISP_FLASHFILE = $(TARGET).hex
@@ -253,13 +255,14 @@ LPC21ISP_CONTROL = -control
 ## DIRAVRUTILS = $(DIRAVR)/utils/bin/
 
 # Define programs and commands.
+TARGET_PREFIX=arm-none-eabi-
 SHELL = sh
-CC = arm-none-eabi-gcc
-CPP = arm-none-eabi-g++
-OBJCOPY = arm-none-eabi-objcopy
-OBJDUMP = arm-none-eabi-objdump
-SIZE = arm-none-eabi-size
-NM = arm-none-eabi-nm
+CC = $(TARGET_PREFIX)gcc
+CPP = $(TARGET_PREFIX)g++
+OBJCOPY = $(TARGET_PREFIX)objcopy
+OBJDUMP = $(TARGET_PREFIX)objdump
+SIZE = $(TARGET_PREFIX)size
+NM = $(TARGET_PREFIX)nm
 REMOVE = rm -f
 COPY = cp
 
@@ -302,8 +305,8 @@ GENDEPFLAGS = -MD -MP -MF .dep/$(@F).d
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS  = -march=$(MCU) $(THUMB_IW) -I. $(CFLAGS) $(GENDEPFLAGS)
-ALL_ASFLAGS = -march=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
+ALL_CFLAGS  = -mcpu=$(MCU) $(THUMB_IW) -I. $(CFLAGS) $(GENDEPFLAGS)
+ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
 # Default target.
@@ -377,7 +380,7 @@ else
 program: $(TARGET).$(IMGEXT)
 	@echo
 	@echo $(MSG_LPC21_RESETREMINDER)
-	$(LPC21ISP) $(LPC21ISP_OPTIONS) $(LPC21ISP_DEBUG) $(LPC21ISP_FLASHFILE) $(LPC21ISP_PORT) $(LPC21ISP_BAUD) $(LPC21ISP_XTAL)
+	sudo $(LPC21ISP) $(LPC21ISP_OPTIONS) $(LPC21ISP_DEBUG) $(LPC21ISP_FLASHFILE) $(LPC21ISP_PORT) $(LPC21ISP_BAUD) $(LPC21ISP_XTAL)
 endif
 endif
 
