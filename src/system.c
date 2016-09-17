@@ -39,80 +39,82 @@ void UNDEF_Routine (void)
 //Short delay
 void delay_ms(int count)
 {
-    int i;
-    count *= 10000;
-    for (i = 0; i < count; i++)
+  int i;
+  count *= 10000;
+  for (i = 0; i < count; i++)
     {
-        asm volatile ("nop");
+      asm volatile ("nop");
     }
 }
 
 void boot_up(void)
 {
-    //Initialize the MCU clock PLL
-    system_init();
+  SCS = 3;
 
-	IODIR0 |= (1 << 31);
-	IOCLR0 |= (1 << 31); //Turn on USB LED
+  //Initialize the MCU clock PLL
+  system_init();
 
-    //Init UART0 for debug
-    PINSEL0 |= 0x00000005; //enable uart0
-    U0LCR = 0x83; // 8 bits, no Parity, 1 Stop bit, DLAB = 1 
-    U0DLM = 0x00; 
-    U0DLL = 0x20; // 115200 Baud Rate @ 58982400 VPB Clock  
-    U0LCR = 0x03; // DLAB = 0                          
+  FIO0DIR |= (1 << 31);
+  FIO0CLR |= (1 << 31); //Turn on USB LED
 
-    //Init rprintf
-    rprintf_devopen(putc_serial0); 
-    rprintf("\n\n\nUSB Bootloader v1.1\n");
+  //Init UART0 for debug
+  PINSEL0 |= 0x00000005; //enable uart0
+  U0LCR = 0x83; // 8 bits, no Parity, 1 Stop bit, DLAB = 1 
+  U0DLM = 0x00; 
+  U0DLL = 0x20; // 115200 Baud Rate @ 58982400 VPB Clock  
+  U0LCR = 0x03; // DLAB = 0                          
 
-	//IOSET0 |= (1 << 31); //Turn off USB LED
+  //Init rprintf
+  rprintf_devopen(putc_serial0); 
+  rprintf("\n\n\nUSB Bootloader v1.1\n");
+
+  //IOSET0 |= (1 << 31); //Turn off USB LED
 }
 
 /**********************************************************
   Initialize
- **********************************************************/
+**********************************************************/
 
 #define PLOCK 0x400
 
 void system_init(void)
 {
-    // Setting Multiplier and Divider values
-    PLLCFG=0x24;
-    feed();
+  // Setting Multiplier and Divider values
+  PLLCFG=0x24;
+  feed();
 
-    // Enabling the PLL */
-    PLLCON=0x1;
-    feed();
+  // Enabling the PLL */
+  PLLCON=0x1;
+  feed();
 
-    // Wait for the PLL to lock to set frequency
-    while(!(PLLSTAT & PLOCK)) ;
+  // Wait for the PLL to lock to set frequency
+  while(!(PLLSTAT & PLOCK)) ;
 
-    // Connect the PLL as the clock source
-    PLLCON=0x3;
-    feed();
+  // Connect the PLL as the clock source
+  PLLCON=0x3;
+  feed();
 
-    // Enabling MAM and setting number of clocks used for Flash memory fetch (4 cclks in this case)
-    //MAMTIM=0x3; //VCOM?
-    MAMCR=0x2;
-    MAMTIM=0x4; //Original
+  // Enabling MAM and setting number of clocks used for Flash memory fetch (4 cclks in this case)
+  //MAMTIM=0x3; //VCOM?
+  MAMCR=0x2;
+  MAMTIM=0x4; //Original
 
-    // Setting peripheral Clock (pclk) to System Clock (cclk)
-    VPBDIV=0x1;
+  // Setting peripheral Clock (pclk) to System Clock (cclk)
+  VPBDIV=0x1;
 }
 
 void feed(void)
 {
-    PLLFEED=0xAA;
-    PLLFEED=0x55;
+  PLLFEED=0xAA;
+  PLLFEED=0x55;
 }
 
 void reset_processor(void)
 {
-    // Intentionally fault Watchdog to trigger a reset condition
-    WDMOD |= 3;
-    WDFEED = 0xAA;
-    WDFEED = 0x55;
-    WDFEED = 0xAA;
-    WDFEED = 0x00;
+  // Intentionally fault Watchdog to trigger a reset condition
+  WDMOD |= 3;
+  WDFEED = 0xAA;
+  WDFEED = 0x55;
+  WDFEED = 0xAA;
+  WDFEED = 0x00;
 }

@@ -87,7 +87,6 @@ int main (void)
 {
   boot_up();						//Initialize USB port pins and set up the UART
   OLED_init();
-  /*
   rprintf("Boot up complete\n");	
 
   if(IOPIN0 & (1<<23))			//Check to see if the USB cable is plugged in
@@ -120,18 +119,16 @@ int main (void)
   rprintf("Boot Done. Calling firmware...\n");
   delay_ms(500);
   call_firmware();					//Run the new code!
-
-  while(1);
-  */
-  IODIR0 |= (1<<21);
-  IOCLR0 |= (1<<21);
+  // only gets here if firmware run fails!
+  FIO0DIR |= (1<<21);
+  FIO0CLR |= (1<<21);
   int state = 0;
   while (1) {
     state = !state;
     if (state)
-      IOSET0 |= (1<<21);
+      FIO0SET |= (1<<21);
     else
-      IOCLR0 |= (1<<21);
+      FIO0CLR |= (1<<21);
     delay_ms(500);
   }
 }
